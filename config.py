@@ -10,9 +10,14 @@ from __future__ import annotations
 
 import os
 
-# Chargement du fichier .env (clé API hors du code source).
+# Chargement du fichier .env (clé API hors du code source). L'import reste
+# OPTIONNEL : si python-dotenv n'est pas installé (tests, mode démo), on
+# n'échoue pas — on lit alors uniquement les variables d'environnement déjà
+# présentes. On cible explicitement le .env situé à côté de ce module, pour
+# fonctionner quel que soit le dossier depuis lequel l'app est lancée.
 try:
     from dotenv import load_dotenv
+
     load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 except ImportError:
     pass
