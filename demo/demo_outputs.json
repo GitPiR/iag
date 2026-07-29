@@ -1,0 +1,89 @@
+{
+  "_meta": {
+    "description": "Corpus de démonstration hors-ligne. Chaque entrée indique HONNÊTEMENT son origine : 'manuelle' = rédigée à la main pour amorcer la démo ; 'api' = produite par l'API lors d'une campagne réelle. Tant qu'aucune campagne n'a été jouée, toutes les entrées sont 'manuelle'. Le harnais d'évaluation (evaluation/harness.py) peut réécrire ce fichier avec de vraies sorties 'api' après une campagne.",
+    "origines_possibles": ["manuelle", "api"]
+  },
+  "entries": [
+    {
+      "mode": "email",
+      "lang": "fr",
+      "opts": {"ton": "chaleureux", "longueur": "moyen"},
+      "input": "Envoyer le devis pour la création d'un site vitrine, 1 400 € HT, valable 1 mois.",
+      "origin": "manuelle",
+      "output": {
+        "objet": "Votre devis pour le site vitrine",
+        "corps": "Bonjour,\n\nMerci de m'avoir sollicité pour votre projet. Vous trouverez ci-joint le devis pour la création de votre site vitrine, d'un montant de 1 400 € HT, valable un mois.\n\nJe reste disponible pour en discuter ou ajuster le périmètre si besoin. Très belle journée,\n[Votre nom]",
+        "infos_manquantes": []
+      }
+    },
+    {
+      "mode": "email",
+      "lang": "en",
+      "opts": {"ton": "neutre", "longueur": "moyen"},
+      "input": "Send the quote for a showcase website, €1,400 excl. VAT, valid 1 month.",
+      "origin": "manuelle",
+      "output": {
+        "objet": "Your quote for the showcase website",
+        "corps": "Hello,\n\nThank you for considering me for your project. Please find attached the quote for your showcase website, for €1,400 excl. VAT, valid for one month.\n\nI'm happy to discuss it or adjust the scope if needed. Best regards,\n[Your name]",
+        "infos_manquantes": []
+      }
+    },
+    {
+      "mode": "relance",
+      "lang": "fr",
+      "opts": {"ton": "neutre", "longueur": "court", "niveau": "ferme"},
+      "input": "Relancer la facture 2024-051 de 900 €, échue depuis 20 jours.",
+      "origin": "manuelle",
+      "output": {
+        "objet": "Facture 2024-051 en attente de règlement",
+        "corps": "Bonjour,\n\nSauf erreur de ma part, la facture 2024-051 d'un montant de 900 €, échue depuis 20 jours, reste impayée à ce jour.\n\nPourriez-vous m'indiquer une date de règlement ? Je vous en remercie.\n\nCordialement,\n[Votre nom]",
+        "infos_manquantes": []
+      }
+    },
+    {
+      "mode": "relance",
+      "lang": "fr",
+      "opts": {"ton": "neutre", "longueur": "court", "niveau": "douce"},
+      "input": "Relancer un prospect qui n'a pas répondu à ma proposition envoyée la semaine dernière.",
+      "origin": "manuelle",
+      "output": {
+        "objet": "Suite à ma proposition",
+        "corps": "Bonjour,\n\nJe me permets de revenir vers vous au sujet de la proposition que je vous ai adressée la semaine dernière. Peut-être vous a-t-elle échappé.\n\nSeriez-vous disponible pour en échanger cette semaine ? Je reste à votre écoute.\n\nBien à vous,\n[Votre nom]",
+        "infos_manquantes": ["Montant ou objet précis de la proposition (non fourni) : à préciser si vous voulez le rappeler."]
+      }
+    },
+    {
+      "mode": "reponse_avis",
+      "lang": "fr",
+      "opts": {"ton": "chaleureux", "longueur": "court"},
+      "input": "Avis 5/5 : « Travail impeccable et de bons conseils, merci ! »",
+      "origin": "manuelle",
+      "output": {
+        "corps": "Merci beaucoup pour votre retour, il me touche sincèrement. C'était un plaisir de vous accompagner, et au plaisir de vous retrouver.\n[Votre nom]",
+        "infos_manquantes": []
+      }
+    },
+    {
+      "mode": "reponse_avis",
+      "lang": "fr",
+      "opts": {"ton": "neutre", "longueur": "moyen"},
+      "input": "Avis 1/5 : « Commande arrivée cassée et en retard. Aucune réponse à mes mails. Honteux. »",
+      "origin": "manuelle",
+      "output": {
+        "corps": "Bonjour,\n\nJe suis sincèrement désolé que votre commande soit arrivée abîmée et en retard, et que vos messages soient restés sans réponse : ce n'est pas le service que je veux offrir.\n\nJe veux comprendre ce qui s'est passé et trouver une solution avec vous. Pouvez-vous m'écrire à [email] ? Je m'en occupe personnellement.\n\nEncore toutes mes excuses,\n[Votre nom]",
+        "infos_manquantes": ["Aucune solution concrète (remboursement, renvoi) n'a été décidée : à préciser par le commerçant avant envoi."]
+      }
+    },
+    {
+      "mode": "reponse_avis",
+      "lang": "en",
+      "opts": {"ton": "neutre", "longueur": "moyen"},
+      "input": "1/5 review: \"Rude staff and my coffee was cold. Never coming back.\"",
+      "origin": "manuelle",
+      "output": {
+        "corps": "Hello,\n\nI'm sorry your visit fell short and that your coffee was cold — that's not the experience I want anyone to have.\n\nI'd genuinely like to make it right. If you're open to it, please reach me at [email] so I can look into what happened and follow up with the team.\n\nMy sincere apologies,\n[Your name]",
+        "infos_manquantes": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+# Secrets — jamais commités
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Artefacts d'évaluation générés localement (le corpus de démo, lui, est versionné)
+outputs/*.json
+outputs/*.csv
+!outputs/.gitkeep
+
+# OS / éditeurs
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Node (utilisé ponctuellement pour générer le DOCX, non versionné)
+node_modules/
+package.json
+package-lock.json

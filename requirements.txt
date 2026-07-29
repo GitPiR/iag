@@ -1,0 +1,16 @@
+# Dépendances du prototype « Atelier d'écriture générative ».
+# Testé avec Python 3.10+.
+
+# Interface web (recommandée par le sujet).
+streamlit>=1.36
+
+# SDK Python officiel et unifié pour Gemini.
+# ⚠️ NE PAS utiliser google-generativeai (déprécié).
+google-genai>=1.0
+
+# Chargement du fichier .env (clé API hors du code source).
+python-dotenv>=1.0
+
+# NOTE : le cœur (prompts, harnais d'évaluation, mode démo, tests unitaires)
+# fonctionne SANS ces dépendances grâce à l'import paresseux du SDK. Elles ne
+# sont requises que pour lancer l'UI et appeler réellement l'API.
