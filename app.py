@@ -2,8 +2,10 @@
 """Interface Streamlit — Atelier d'écriture générative (§ 4).
 
 Assistant de rédaction de communications professionnelles pour freelances et
-TPE/PME. L'UI reste minimale mais utilisable : elle délègue toute la logique à
-la couche `service`, elle-même adossée à la couche LLM isolée (`llm`).
+TPE/PME. UX épurée « une tâche, un écran, une action » : l'utilisateur voit au
+départ seulement le mode, sa saisie et un bouton ; tout le reste (réglages,
+prompt) est en repli. Toute la logique est déléguée à la couche `service`,
+elle-même adossée à la couche LLM isolée (`llm`).
 
 Lancement :
     streamlit run app.py
@@ -28,16 +30,15 @@ import demo
 import service
 from prompts import library
 
-
 # ---------------------------------------------------------------------------
-# Libellés des options (UI en français, valeurs internes stables)
+# Libellés (UI en français, valeurs internes stables)
 # ---------------------------------------------------------------------------
 MODE_LABELS = {
-    "email": "✉️ Email professionnel",
+    "email": "✉️ Email",
     "relance": "🔔 Relance",
     "reponse_avis": "💬 Réponse à un avis",
-    "post": "📣 Post réseau social (bonus)",
-    "reformuler": "✏️ Reformuler (bonus)",
+    "post": "📣 Post",
+    "reformuler": "✏️ Reformuler",
 }
 LANG_LABELS = {"fr": "Français", "en": "English"}
 TON_LABELS = {"neutre": "Neutre", "chaleureux": "Chaleureux", "formel": "Formel", "direct": "Direct"}
@@ -45,43 +46,50 @@ LONGUEUR_LABELS = {"court": "Court", "moyen": "Moyen", "long": "Long"}
 NIVEAU_LABELS = {"douce": "Douce", "ferme": "Ferme", "derniere_chance": "Dernière chance"}
 PLATEFORME_LABELS = {"linkedin": "LinkedIn", "instagram": "Instagram", "twitter": "X/Twitter", "facebook": "Facebook"}
 
+PLACEHOLDERS = {
+    "email": "Objectif de l'email + éléments factuels (montant, date, référence…).",
+    "relance": "Facture/prospect concerné, montant, échéance, contexte.",
+    "reponse_avis": "Collez l'avis ou le message du client (note, contenu).",
+    "post": "Message à faire passer, événement à annoncer.",
+    "reformuler": "Collez le texte à corriger ou clarifier.",
+}
 
-def _selectbox(label, options, fmt, key):
-    return st.selectbox(label, options, format_func=lambda v: fmt[v], key=key)
 
-
-def _render_output(data: dict, origin: str | None = None):
-    """Affiche une sortie structurée (objet/corps/infos_manquantes)."""
-    if origin:
-        libelle = "produite par l'API" if origin == "api" else "rédigée à la main (amorce de démo)"
-        st.caption(f"Origine de cette sortie : {libelle}.")
+# ---------------------------------------------------------------------------
+# Rendu d'une sortie (objet / message / infos manquantes)
+# ---------------------------------------------------------------------------
+def _render_output(data: dict, *, origin: str | None = None, key: str = ""):
     if data.get("objet"):
-        st.text_input("Objet", value=data["objet"], key=f"obj_{id(data)}")
+        st.markdown(f"**Objet —** {data['objet']}")
     corps = data.get("corps", "")
-    st.text_area("Message", value=corps, height=260, key=f"corps_{id(data)}")
-    # Bouton copier : st.code offre une copie native, pratique et sans JS custom.
-    with st.expander("📋 Copier le texte"):
+    st.text_area("Message", value=corps, height=240, key=f"corps_{key}",
+                 label_visibility="collapsed")
+    # Vrai bouton copier, sans encombrer l'écran : un popover révèle un bloc
+    # avec l'icône de copie native de st.code.
+    with st.popover("📋 Copier"):
         st.code(corps, language=None)
     infos = data.get("infos_manquantes") or []
     if infos:
-        st.warning("⚠️ Informations à compléter avant envoi (signalées, non inventées) :")
+        st.warning("⚠️ À compléter avant envoi (signalé, non inventé) :")
         for i in infos:
             st.markdown(f"- {i}")
+    if origin:
+        libelle = "produite par l'API" if origin == "api" else "rédigée à la main (amorce de démo)"
+        st.caption(f"Origine : {libelle}.")
 
 
 def _render_prompt_panel(prompt: dict):
-    """Panneau « Voir le prompt envoyé » (§ 4.3) — décisif pour le correcteur."""
+    """Traçabilité du prompt — tout en bas, replié (preuve pour le correcteur)."""
     with st.expander("🔍 Voir le prompt envoyé (traçabilité)"):
-        st.markdown("**Modèle**")
-        st.code(prompt.get("model", config.MODEL_ID))
         temp = prompt.get("temperature")
-        st.markdown(f"**Température** : {'(non transmise — défaut du modèle)' if temp is None else temp}")
+        st.caption(f"Modèle : `{prompt.get('model', config.MODEL_ID)}` · "
+                   f"Température : {'défaut du modèle' if temp is None else temp}")
         st.markdown("**system_instruction**")
         st.code(prompt.get("system_instruction", ""), language=None)
         st.markdown("**Contenu utilisateur (données délimitées)**")
         st.code(prompt.get("user_content", ""), language=None)
-        st.markdown("**response_schema (sortie structurée native)**")
-        st.json(prompt.get("response_schema", {}))
+        st.markdown("**response_schema**")
+        st.json(prompt.get("response_schema", {}), expanded=False)
 
 
 # ---------------------------------------------------------------------------
@@ -89,95 +97,126 @@ def _render_prompt_panel(prompt: dict):
 # ---------------------------------------------------------------------------
 def main():
     st.set_page_config(page_title="Atelier d'écriture générative", page_icon="✍️")
-    st.title("✍️ Atelier d'écriture générative")
-    st.caption("Assistant de communication pour freelances et TPE/PME — email, relance, réponse à un avis.")
 
-    # Rappel d'usage responsable, en tête (§ 10.7).
-    st.info(
-        "🧭 **À relire et à assumer avant envoi.** Le texte est généré par IA : "
-        "vérifiez les faits, montants et engagements. Une réponse à un avis est "
-        "**publique**. Ne saisissez pas de données personnelles sensibles.",
-        icon="🧭",
-    )
+    has_key = bool(config.get_api_key())
+    ss = st.session_state
+    # Le mode démo est forcé sans clé ; avec clé, il est proposé dans les options.
+    ss.setdefault("force_demo", False)
+    demo_mode = (not has_key) or ss["force_demo"]
 
-    with st.sidebar:
-        st.header("Paramètres")
-        demo_mode = st.toggle("Mode démo (hors-ligne, sans clé API)", value=not config.get_api_key(),
-                              help="Rejoue des sorties pré-enregistrées, sans aucun appel API.")
-        improve = st.toggle("Produire aussi une version améliorée (auto-critique)", value=False,
-                            help="Second appel qui critique puis corrige la première version.")
-        if not demo_mode and not config.get_api_key():
-            st.warning("Aucune clé API détectée. Activez le mode démo ou renseignez GEMINI_API_KEY.")
+    # En-tête minimal : titre + badge d'état + rappel d'usage en une ligne.
+    left, right = st.columns([4, 1])
+    with left:
+        st.title("✍️ Atelier d'écriture")
+    with right:
+        st.markdown(
+            "<div style='text-align:right;padding-top:22px'>"
+            + ("🟢 En ligne" if not demo_mode else "⚪ Démo")
+            + "</div>",
+            unsafe_allow_html=True,
+        )
+    st.caption("Email · relance · réponse à un avis, pour freelances et TPE. "
+               "⚠️ Contenu IA — **à relire et à assumer avant envoi** (une réponse à un avis est publique).")
 
-        st.divider()
-        # --- Les 5+ contraintes paramétrables (§ 4.2) ---
-        mode = _selectbox("1. Mode", list(MODE_LABELS), MODE_LABELS, "mode")            # contrainte 1
-        lang = _selectbox("2. Langue de sortie", list(LANG_LABELS), LANG_LABELS, "lang")  # contrainte 2
-        ton = _selectbox("3. Ton", list(TON_LABELS), TON_LABELS, "ton")                 # contrainte 3
-        longueur = _selectbox("4. Longueur", list(LONGUEUR_LABELS), LONGUEUR_LABELS, "longueur")  # contrainte 4
+    # 1) Mode : sélecteur visuel (un clic, tout visible).
+    mode = st.segmented_control(
+        "Mode", list(MODE_LABELS), format_func=lambda v: MODE_LABELS[v],
+        default="email", key="mode", label_visibility="collapsed",
+    ) or "email"
 
+    # 2) Saisie.
+    user_text = st.text_area("Votre saisie", height=150, key="saisie",
+                             placeholder=PLACEHOLDERS.get(mode, ""),
+                             label_visibility="collapsed")
+
+    # 3) Options avancées, repliées par défaut (défauts sensés pour 90 % des cas).
+    with st.expander("⚙️ Options"):
+        lang = st.segmented_control("Langue", list(LANG_LABELS),
+                                    format_func=lambda v: LANG_LABELS[v],
+                                    default="fr", key="lang") or "fr"
+        ton = st.segmented_control("Ton", list(TON_LABELS),
+                                   format_func=lambda v: TON_LABELS[v],
+                                   default="neutre", key="ton") or "neutre"
+        longueur = st.segmented_control("Longueur", list(LONGUEUR_LABELS),
+                                        format_func=lambda v: LONGUEUR_LABELS[v],
+                                        default="moyen", key="longueur") or "moyen"
         opts = {"ton": ton, "longueur": longueur}
-        if mode == "relance":  # contrainte 5 (propre au mode)
-            opts["niveau"] = _selectbox("5. Niveau d'insistance", list(NIVEAU_LABELS), NIVEAU_LABELS, "niveau")
+        if mode == "relance":
+            opts["niveau"] = st.selectbox("Niveau d'insistance", list(NIVEAU_LABELS),
+                                          format_func=lambda v: NIVEAU_LABELS[v], key="niveau")
         elif mode == "post":
-            opts["plateforme"] = _selectbox("5. Plateforme", list(PLATEFORME_LABELS), PLATEFORME_LABELS, "plateforme")
+            opts["plateforme"] = st.selectbox("Plateforme", list(PLATEFORME_LABELS),
+                                              format_func=lambda v: PLATEFORME_LABELS[v], key="plateforme")
+        if has_key:
+            ss["force_demo"] = st.checkbox("Forcer le mode démo (hors-ligne)", value=ss["force_demo"])
 
-    placeholder = {
-        "email": "Objectif de l'email + éléments factuels (montant, date, référence...).",
-        "relance": "Facture/prospect concerné, montant, échéance, contexte.",
-        "reponse_avis": "Collez l'avis ou le message du client (note, contenu).",
-        "post": "Message à faire passer, événement à annoncer.",
-        "reformuler": "Collez le texte à corriger ou clarifier.",
-    }.get(mode, "")
-    user_text = st.text_area("Votre saisie", height=160, placeholder=placeholder)
+    # Options par défaut si l'expander n'a pas été ouvert.
+    opts = locals().get("opts", {"ton": "neutre", "longueur": "moyen"})
+    lang = locals().get("lang", "fr")
 
-    generate = st.button("Générer", type="primary")
+    # 4) Une seule action, pleine largeur.
+    if st.button("Générer", type="primary", use_container_width=True):
+        _do_generate(mode, lang, user_text, opts, demo_mode)
 
-    if not generate:
-        return
+    # Affichage persistant du dernier résultat (survit aux reruns des boutons).
+    _render_last_result(mode, lang, opts)
 
-    # ------------------------------------------------------------------ DÉMO
+
+def _do_generate(mode, lang, user_text, opts, demo_mode):
+    ss = st.session_state
+    ss.pop("improved", None)  # on repart d'une v1 propre
     if demo_mode:
         packed = demo.get_demo_output(mode, lang, opts)
         if packed is None:
-            st.error("Aucune sortie de démo disponible pour cette combinaison. "
-                     "Choisissez un mode cœur (email, relance, réponse à un avis).")
+            ss["result"] = {"error": "Aucune sortie de démo pour cette combinaison. "
+                                      "Choisissez email, relance ou réponse à un avis."}
             return
-        st.success("Version générée (mode démo)")
-        if packed.get("input"):
-            st.caption(f"Saisie rejouée : « {packed['input']} »")
-        _render_output(packed["data"], origin=packed.get("origin"))
-        # En démo, on montre tout de même le prompt qui SERAIT envoyé (traçabilité).
-        _render_prompt_panel(library.build_prompt(mode, lang, user_text or packed.get("input", ""), opts))
+        ss["result"] = {
+            "data": packed["data"], "origin": packed.get("origin"),
+            "demo_input": packed.get("input", ""),
+            "prompt": library.build_prompt(mode, lang, user_text or packed.get("input", ""), opts),
+        }
         return
-
-    # --------------------------------------------------------------- API réelle
-    with st.spinner("Génération en cours..."):
+    with st.status("Rédaction en cours…", expanded=False):
         result, prompt = service.generate_message(mode, lang, user_text, opts)
+    ss["result"] = ({"data": result.data, "prompt": prompt} if result.ok
+                    else {"error": result.error, "prompt": prompt})
 
-    if not result.ok:
-        # Message clair, jamais de trace Python (§ 4.8).
-        st.error(f"❌ {result.error}")
-        _render_prompt_panel(prompt)
+
+def _render_last_result(mode, lang, opts):
+    ss = st.session_state
+    res = ss.get("result")
+    if not res:
+        return
+    st.divider()
+    if "error" in res:
+        st.error(f"❌ {res['error']}")
+        if res.get("prompt"):
+            _render_prompt_panel(res["prompt"])
         return
 
-    st.success("Première version")
-    _render_output(result.data)
-    _render_prompt_panel(prompt)
+    if res.get("demo_input"):
+        st.caption(f"Saisie rejouée : « {res['demo_input']} »")
+    st.markdown("#### Résultat")
+    _render_output(res["data"], origin=res.get("origin"), key="v1")
 
-    # ----------------------------------------------------- Version améliorée
-    if improve:
-        with st.spinner("Auto-critique et amélioration..."):
-            improved, imp_prompt = service.improve_message(mode, lang, result.data)
-        st.divider()
-        if not improved.ok:
-            st.warning(f"Version améliorée indisponible : {improved.error}")
-        else:
-            st.success("Version améliorée (après auto-critique)")
-            _render_output(improved.data)
-            with st.expander("🔍 Voir le prompt d'auto-critique"):
-                st.code(imp_prompt["system_instruction"], language=None)
-                st.code(imp_prompt["user_content"], language=None)
+    # 6) La version améliorée devient un bouton secondaire APRÈS la v1 :
+    # on décide d'améliorer en voyant le premier jet (seulement en ligne).
+    if not (res.get("origin")):  # pas en démo
+        if st.button("✨ Améliorer cette version (auto-critique)"):
+            with st.status("Auto-critique et amélioration…", expanded=False):
+                improved, _ = service.improve_message(mode, lang, res["data"])
+            ss["improved"] = {"data": improved.data} if improved.ok else {"error": improved.error}
+        imp = ss.get("improved")
+        if imp:
+            if "error" in imp:
+                st.warning(f"Version améliorée indisponible : {imp['error']}")
+            else:
+                st.markdown("#### Version améliorée")
+                _render_output(imp["data"], key="v2")
+
+    if res.get("prompt"):
+        _render_prompt_panel(res["prompt"])
 
 
 if __name__ == "__main__":

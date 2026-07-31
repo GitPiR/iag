@@ -2,7 +2,8 @@
 # Testé avec Python 3.10+.
 
 # Interface web (recommandée par le sujet).
-streamlit>=1.36
+# >=1.40 requis pour st.segmented_control (UX épurée).
+streamlit>=1.40
 
 # SDK Python officiel et unifié pour Gemini.
 # ⚠️ NE PAS utiliser google-generativeai (déprécié).
