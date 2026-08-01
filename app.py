@@ -96,7 +96,7 @@ def _render_prompt_panel(prompt: dict):
 # Application
 # ---------------------------------------------------------------------------
 def main():
-    st.set_page_config(page_title="Atelier d'écriture générative", page_icon="✍️")
+    st.set_page_config(page_title="Mon assistant", page_icon="📝")
 
     has_key = bool(config.get_api_key())
     ss = st.session_state
@@ -104,19 +104,24 @@ def main():
     ss.setdefault("force_demo", False)
     demo_mode = (not has_key) or ss["force_demo"]
 
-    # En-tête minimal : titre + badge d'état + rappel d'usage en une ligne.
-    left, right = st.columns([4, 1])
-    with left:
-        st.title("✍️ Atelier d'écriture")
-    with right:
-        st.markdown(
-            "<div style='text-align:right;padding-top:22px'>"
-            + ("🟢 En ligne" if not demo_mode else "⚪ Démo")
-            + "</div>",
-            unsafe_allow_html=True,
-        )
-    st.caption("Email · relance · réponse à un avis, pour freelances et TPE. "
-               "⚠️ Contenu IA — **à relire et à assumer avant envoi** (une réponse à un avis est publique).")
+    # En-tête minimal : titre CENTRÉ + badge d'état + rappel d'usage, centrés.
+    st.markdown(
+        "<h1 style='text-align:center;margin-bottom:0.2rem'>Mon assistant</h1>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<div style='text-align:center'>"
+        + ("🟢 En ligne" if not demo_mode else "⚪ Démo")
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<div style='text-align:center;color:#888;font-size:0.85rem;margin-top:0.3rem'>"
+        "Email · relance · réponse à un avis, pour freelances et TPE. "
+        "⚠️ Contenu IA — à relire et à assumer avant envoi (une réponse à un avis est publique)."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
     # 1) Mode : sélecteur visuel (un clic, tout visible).
     mode = st.segmented_control(
