@@ -98,11 +98,13 @@ def build_judge_prompt(case: dict, output_data: dict) -> dict:
     }
 
 
-def judge_output(case: dict, output_data: dict) -> llm.LLMResult:
+def judge_output(case: dict, output_data: dict, *, max_retries: int = 0,
+                 retry_delay: float = 5.0) -> llm.LLMResult:
     """Fait évaluer une sortie par le juge LLM.
 
     Utilise une SEED fixe (config.JUDGE_SEED) : pour le juge, la stabilité
-    prime. La génération, elle, reste libre (cf. § 7.5).
+    prime. La génération, elle, reste libre (cf. § 7.5). `max_retries` permet
+    au harnais d'absorber les 429/5xx du palier gratuit.
     """
     prompt = build_judge_prompt(case, output_data)
     return llm.generate(
@@ -112,6 +114,8 @@ def judge_output(case: dict, output_data: dict) -> llm.LLMResult:
         temperature=0.0 if config.USE_PER_MODE_TEMPERATURE else None,
         seed=config.JUDGE_SEED,
         model=config.JUDGE_MODEL_ID,
+        max_retries=max_retries,
+        retry_delay=retry_delay,
     )
 
 

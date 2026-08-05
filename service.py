@@ -74,11 +74,13 @@ def validate_inputs(mode: str, lang: str, user_text: str, opts: dict | None) -> 
 # ---------------------------------------------------------------------------
 # Génération de la première version
 # ---------------------------------------------------------------------------
-def generate_message(mode: str, lang: str, user_text: str, opts: dict | None = None) -> tuple[llm.LLMResult, dict]:
+def generate_message(mode: str, lang: str, user_text: str, opts: dict | None = None,
+                     *, max_retries: int = 0, retry_delay: float = 5.0) -> tuple[llm.LLMResult, dict]:
     """Génère la première version via le prompt de production.
 
     Renvoie (résultat, prompt_dict). Le `prompt_dict` alimente le panneau
     « Voir le prompt envoyé » de l'UI, même en cas d'échec de l'appel.
+    `max_retries` est laissé à 0 pour l'UI (réactivité) et monté par le harnais.
     """
     ok, message = validate_inputs(mode, lang, user_text, opts)
     prompt = library.build_prompt(mode, lang, user_text, opts)
@@ -95,6 +97,8 @@ def generate_message(mode: str, lang: str, user_text: str, opts: dict | None = N
         temperature=prompt["temperature"],
         seed=prompt["seed"],
         model=prompt["model"],
+        max_retries=max_retries,
+        retry_delay=retry_delay,
     )
     return result, prompt
 

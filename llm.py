@@ -18,6 +18,7 @@ Objectifs de conception :
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -181,6 +182,8 @@ def generate(
     seed: int | None = None,
     model: str | None = None,
     expect_json: bool = True,
+    max_retries: int = 0,
+    retry_delay: float = 5.0,
 ) -> LLMResult:
     """Appelle le modèle et renvoie un `LLMResult`. NE LÈVE JAMAIS.
 
@@ -197,6 +200,11 @@ def generate(
                          renvoie le texte brut dans data["corps"] (utilisé par
                          les paliers naïfs du journal, qui produisent du texte
                          libre non structuré).
+    max_retries        : nombre de nouvelles tentatives sur erreur TRANSITOIRE
+                         (429 quota, 5xx serveur). 0 par défaut pour ne pas
+                         ralentir l'UI ; le harnais d'évaluation le monte à ~5
+                         afin de tenir sur le palier gratuit (limite par minute).
+    retry_delay        : délai de base (s) du back-off exponentiel entre essais.
     """
     model = model or config.MODEL_ID
     meta: dict = {"model": model, "temperature": temperature, "source": "api"}
@@ -240,33 +248,49 @@ def generate(
     if seed is not None:
         config_kwargs["seed"] = seed
 
-    # 4) Appel réseau protégé.
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model=model,
-            contents=user_content,
-            config=types.GenerateContentConfig(**config_kwargs),
-        )
-    except errors.APIError as exc:
-        # Erreurs d'API structurées (4xx/5xx) : classées en messages lisibles.
-        code, message = _classify_api_error(exc)
-        return LLMResult(ok=False, error=message, error_code=code, meta=meta)
-    except Exception as exc:  # noqa: BLE001
-        # Dernier rempart JUSTIFIÉ (§ 5.5) : les pannes réseau remontent sous
-        # des types trop variés (httpx, ssl, socket, timeout) pour être toutes
-        # énumérées sans risque d'en oublier. On n'AVALE rien : type et message
-        # restent visibles dans le message d'erreur.
-        return LLMResult(
-            ok=False,
-            error=(
-                "Échec de l'appel réseau au service Gemini "
-                f"({type(exc).__name__} : {exc}). Vérifiez votre connexion "
-                "puis réessayez."
-            ),
-            error_code="NETWORK",
-            meta=meta,
-        )
+    # 4) Appel réseau protégé, avec retry sur erreurs TRANSITOIRES (429/5xx).
+    # Le back-off exponentiel est plafonné à 60 s : la limite « par minute » du
+    # palier gratuit se réinitialise en une minute, inutile d'attendre plus.
+    attempt = 0
+    while True:
+        try:
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model=model,
+                contents=user_content,
+                config=types.GenerateContentConfig(**config_kwargs),
+            )
+            break
+        except errors.APIError as exc:
+            code = getattr(exc, "code", None)
+            transient = code == 429 or (isinstance(code, int) and 500 <= code < 600)
+            if transient and attempt < max_retries:
+                time.sleep(min(retry_delay * (2 ** attempt), 60.0))
+                attempt += 1
+                continue
+            # Erreur définitive (ou plus de tentatives) : message lisible.
+            c, message = _classify_api_error(exc)
+            return LLMResult(ok=False, error=message, error_code=c, meta=meta)
+        except Exception as exc:  # noqa: BLE001
+            # Dernier rempart JUSTIFIÉ (§ 5.5) : les pannes réseau remontent sous
+            # des types trop variés (httpx, ssl, socket, timeout) pour être
+            # toutes énumérées sans risque d'en oublier. On tente aussi un retry
+            # (coupures passagères), sans rien AVALER : type et message restent
+            # visibles dans le message d'erreur final.
+            if attempt < max_retries:
+                time.sleep(min(retry_delay * (2 ** attempt), 60.0))
+                attempt += 1
+                continue
+            return LLMResult(
+                ok=False,
+                error=(
+                    "Échec de l'appel réseau au service Gemini "
+                    f"({type(exc).__name__} : {exc}). Vérifiez votre connexion "
+                    "puis réessayez."
+                ),
+                error_code="NETWORK",
+                meta=meta,
+            )
 
     # 5) Extraction du texte.
     raw_text = getattr(response, "text", None) or ""

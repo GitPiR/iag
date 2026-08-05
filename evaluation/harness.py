@@ -77,13 +77,21 @@ def detect_failure(record: dict) -> list[str]:
 # ---------------------------------------------------------------------------
 # Exécution d'un cas
 # ---------------------------------------------------------------------------
-def run_case(case: dict, n_draws: int) -> dict:
-    """Joue un cas n_draws fois : génération + déterministe + juge."""
+def run_case(case: dict, n_draws: int, *, delay: float = 0.0,
+             max_retries: int = 0, retry_delay: float = 5.0) -> dict:
+    """Joue un cas n_draws fois : génération + déterministe + juge.
+
+    `delay` : pause (s) après chaque appel API pour respecter la limite « par
+    minute » du palier gratuit. `max_retries` : réessais sur 429/5xx.
+    """
     draws = []
     for i in range(n_draws):
         gen_result, prompt = service.generate_message(
-            case["mode"], case["lang"], case["input"], case.get("opts")
+            case["mode"], case["lang"], case["input"], case.get("opts"),
+            max_retries=max_retries, retry_delay=retry_delay,
         )
+        if delay:
+            time.sleep(delay)
         record: dict = {"draw": i, "case_id": case["id"]}
 
         if not gen_result.ok:
@@ -106,7 +114,9 @@ def run_case(case: dict, n_draws: int) -> dict:
         record["deterministic"] = det
 
         # Notation par le juge LLM.
-        judge_result = judge.judge_output(case, data)
+        judge_result = judge.judge_output(case, data, max_retries=max_retries, retry_delay=retry_delay)
+        if delay:
+            time.sleep(delay)
         if judge_result.ok:
             record["judge"] = judge.normalize_scores(judge_result.data)
         else:
@@ -131,7 +141,8 @@ def run_case(case: dict, n_draws: int) -> dict:
 # ---------------------------------------------------------------------------
 # Campagne complète
 # ---------------------------------------------------------------------------
-def run_campaign(modes: str = "core", n_draws: int = 3, output_dir: str | None = None) -> dict:
+def run_campaign(modes: str = "core", n_draws: int = 3, output_dir: str | None = None,
+                 delay: float = 0.0, max_retries: int = 0, retry_delay: float = 5.0) -> dict:
     """Joue la campagne sur les cas des modes demandés."""
     output_dir = output_dir or config.OUTPUTS_DIR
     os.makedirs(output_dir, exist_ok=True)
@@ -146,7 +157,8 @@ def run_campaign(modes: str = "core", n_draws: int = 3, output_dir: str | None =
     results = []
     for case in cases:
         print(f"→ Cas {case['id']} ({n_draws} tirages)...")
-        results.append(run_case(case, n_draws))
+        results.append(run_case(case, n_draws, delay=delay,
+                                max_retries=max_retries, retry_delay=retry_delay))
 
     campaign = {
         "meta": {
@@ -228,12 +240,19 @@ def main() -> None:
     parser.add_argument("--modes", choices=["core", "all"], default="core")
     parser.add_argument("--dry-run", action="store_true",
                         help="N'appelle pas l'API : affiche seulement le coût estimé.")
+    parser.add_argument("--delay", type=float, default=4.0,
+                        help="Pause (s) après chaque appel, pour tenir la limite "
+                             "par minute du palier gratuit (défaut : 4).")
+    parser.add_argument("--retries", type=int, default=5,
+                        help="Réessais sur quota/serveur (429/5xx). Défaut : 5.")
     args = parser.parse_args()
 
     calls = estimate_calls(args.modes, args.draws)
+    est_min = round(calls * args.delay / 60, 1)
     print(f"Coût estimé : {calls} appels API "
           f"({len(testcases.cases_for_modes(config.CORE_MODES if args.modes == 'core' else config.MODES))} "
-          f"cas × {args.draws} tirages × 2 appels [génération + juge]).")
+          f"cas × {args.draws} tirages × 2 appels [génération + juge]). "
+          f"Durée min. avec --delay {args.delay}s : ~{est_min} min.")
 
     if args.dry_run:
         print("Essai à blanc (--dry-run) : aucune requête envoyée.")
@@ -242,7 +261,8 @@ def main() -> None:
         print("❌ Aucune clé API (GEMINI_API_KEY). Renseignez .env, ou utilisez --dry-run.")
         return
 
-    run_campaign(modes=args.modes, n_draws=args.draws)
+    run_campaign(modes=args.modes, n_draws=args.draws,
+                 delay=args.delay, max_retries=args.retries)
 
 
 if __name__ == "__main__":

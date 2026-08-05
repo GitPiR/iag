@@ -46,7 +46,8 @@ def _case_by_id(case_id: str) -> dict:
     raise KeyError(case_id)
 
 
-def _generate_for_version(spec: dict) -> llm.LLMResult:
+def _generate_for_version(spec: dict, *, max_retries: int = 0,
+                          retry_delay: float = 5.0) -> llm.LLMResult:
     """Appelle le modèle pour un palier donné.
 
     v1/v2 produisent du texte libre (expect_json=False) ; v3/v4 demandent le
@@ -62,11 +63,18 @@ def _generate_for_version(spec: dict) -> llm.LLMResult:
         temperature=spec["temperature"],
         seed=spec["seed"],
         expect_json=expect_json,
+        max_retries=max_retries,
+        retry_delay=retry_delay,
     )
 
 
-def run_replay(n_draws: int, output_dir: str | None = None) -> dict:
-    """Joue les 5 paliers sur les cas discriminants, n_draws fois."""
+def run_replay(n_draws: int, output_dir: str | None = None, *, delay: float = 0.0,
+               max_retries: int = 0, retry_delay: float = 5.0) -> dict:
+    """Joue les 5 paliers sur les cas discriminants, n_draws fois.
+
+    `delay` : pause (s) après chaque appel (limite par minute du palier gratuit).
+    `max_retries` : réessais sur 429/5xx.
+    """
     output_dir = output_dir or config.OUTPUTS_DIR
     os.makedirs(output_dir, exist_ok=True)
     cases = [_case_by_id(cid) for cid in DISCRIMINANT_IDS]
@@ -79,7 +87,9 @@ def run_replay(n_draws: int, output_dir: str | None = None) -> dict:
                 version, case["mode"], case["lang"], case["input"], case.get("opts")
             )
             for i in range(n_draws):
-                gen = _generate_for_version(spec)
+                gen = _generate_for_version(spec, max_retries=max_retries, retry_delay=retry_delay)
+                if delay:
+                    time.sleep(delay)
                 rec = {"case_id": case["id"], "version": version, "draw": i}
                 if not gen.ok:
                     rec["gen_error"] = {"code": gen.error_code, "message": gen.error}
@@ -96,7 +106,9 @@ def run_replay(n_draws: int, output_dir: str | None = None) -> dict:
                     data, case["mode"], case["lang"], longueur,
                     injection_marker=case.get("injection_marker", ""),
                 )
-                jr = judge.judge_output(case, data)
+                jr = judge.judge_output(case, data, max_retries=max_retries, retry_delay=retry_delay)
+                if delay:
+                    time.sleep(delay)
                 rec["judge"] = judge.normalize_scores(jr.data) if jr.ok else None
                 per_version[version].append(rec)
 
@@ -175,18 +187,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Rejeu du journal des 5 paliers.")
     parser.add_argument("--draws", type=int, default=3)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--delay", type=float, default=4.0,
+                        help="Pause (s) après chaque appel (palier gratuit). Défaut : 4.")
+    parser.add_argument("--retries", type=int, default=5,
+                        help="Réessais sur quota/serveur (429/5xx). Défaut : 5.")
     args = parser.parse_args()
 
     calls = estimate_calls(args.draws)
+    est_min = round(calls * args.delay / 60, 1)
     print(f"Coût estimé : {calls} appels API "
-          f"(5 paliers × {len(DISCRIMINANT_IDS)} cas × {args.draws} tirages × 2).")
+          f"(5 paliers × {len(DISCRIMINANT_IDS)} cas × {args.draws} tirages × 2). "
+          f"Durée min. avec --delay {args.delay}s : ~{est_min} min.")
     if args.dry_run:
         print("Essai à blanc (--dry-run) : aucune requête envoyée.")
         return
     if not config.get_api_key():
         print("❌ Aucune clé API (GEMINI_API_KEY). Renseignez .env, ou utilisez --dry-run.")
         return
-    run_replay(args.draws)
+    run_replay(args.draws, delay=args.delay, max_retries=args.retries)
 
 
 if __name__ == "__main__":
