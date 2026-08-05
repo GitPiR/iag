@@ -56,6 +56,39 @@ PLACEHOLDERS = {
 
 
 # ---------------------------------------------------------------------------
+# Habillage visuel — look « produit » (niveau 2 : thème + CSS léger)
+# ---------------------------------------------------------------------------
+def _inject_style():
+    """Injecte un CSS minimal et robuste (sélecteurs stables entre versions).
+
+    On ne touche pas à la logique : uniquement l'espacement, l'arrondi des
+    champs/boutons et la largeur de la colonne, pour un rendu soigné.
+    """
+    st.markdown(
+        """
+        <style>
+          /* Colonne centrée et respirante, comme une vraie appli produit. */
+          .block-container { max-width: 760px; padding-top: 2.2rem; padding-bottom: 4rem; }
+          /* Boutons : arrondis et un peu plus généreux. */
+          .stButton > button {
+              border-radius: 12px; font-weight: 600; padding: 0.55rem 1rem;
+          }
+          /* Zone de saisie et blocs de code arrondis. */
+          .stTextArea textarea { border-radius: 12px; }
+          .stCode, pre { border-radius: 12px !important; }
+          /* Le sélecteur de mode prend toute la largeur, aéré. */
+          div[data-testid="stSegmentedControl"] { width: 100%; }
+          /* Cartes (st.container border) un peu plus douces. */
+          div[data-testid="stVerticalBlockBorderWrapper"] {
+              border-radius: 16px; box-shadow: 0 1px 3px rgba(16,24,40,.06);
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Rendu d'une sortie (objet / message / infos manquantes)
 # ---------------------------------------------------------------------------
 def _render_output(data: dict, *, origin: str | None = None, key: str = ""):
@@ -97,6 +130,7 @@ def _render_prompt_panel(prompt: dict):
 # ---------------------------------------------------------------------------
 def main():
     st.set_page_config(page_title="Mon assistant", page_icon="📝")
+    _inject_style()
 
     has_key = bool(config.get_api_key())
     ss = st.session_state
@@ -203,7 +237,8 @@ def _render_last_result(mode, lang, opts):
     if res.get("demo_input"):
         st.caption(f"Saisie rejouée : « {res['demo_input']} »")
     st.markdown("#### Résultat")
-    _render_output(res["data"], origin=res.get("origin"), key="v1")
+    with st.container(border=True):  # carte « produit »
+        _render_output(res["data"], origin=res.get("origin"), key="v1")
 
     # 6) La version améliorée devient un bouton secondaire APRÈS la v1 :
     # on décide d'améliorer en voyant le premier jet (seulement en ligne).
@@ -218,7 +253,8 @@ def _render_last_result(mode, lang, opts):
                 st.warning(f"Version améliorée indisponible : {imp['error']}")
             else:
                 st.markdown("#### Version améliorée")
-                _render_output(imp["data"], key="v2")
+                with st.container(border=True):  # carte « produit »
+                    _render_output(imp["data"], key="v2")
 
     if res.get("prompt"):
         _render_prompt_panel(res["prompt"])

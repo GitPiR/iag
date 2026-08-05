@@ -1,0 +1,15 @@
+# Thème de l'application — look « produit » sobre et professionnel.
+# Un seul thème clair, cohérent : on privilégie la lisibilité (critère 3).
+[theme]
+base = "light"
+primaryColor = "#4F46E5"              # indigo d'accent (boutons, sélection)
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F6FA"  # fond des champs / cartes
+textColor = "#1E2029"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"               # barre d'outils discrète
+
+[browser]
+gatherUsageStats = false
