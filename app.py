@@ -34,11 +34,11 @@ from prompts import library
 # Libellés (UI en français, valeurs internes stables)
 # ---------------------------------------------------------------------------
 MODE_LABELS = {
-    "email": "✉️ Email",
-    "relance": "🔔 Relance",
-    "reponse_avis": "💬 Réponse à un avis",
-    "post": "📣 Post",
-    "reformuler": "✏️ Reformuler",
+    "email": "Email",
+    "relance": "Relance",
+    "reponse_avis": "Réponse à un avis",
+    "post": "Post",
+    "reformuler": "Reformuler",
 }
 LANG_LABELS = {"fr": "Français", "en": "English"}
 TON_LABELS = {"neutre": "Neutre", "chaleureux": "Chaleureux", "formel": "Formel", "direct": "Direct"}
@@ -99,11 +99,11 @@ def _render_output(data: dict, *, origin: str | None = None, key: str = ""):
                  label_visibility="collapsed")
     # Vrai bouton copier, sans encombrer l'écran : un popover révèle un bloc
     # avec l'icône de copie native de st.code.
-    with st.popover("📋 Copier"):
+    with st.popover("Copier"):
         st.code(corps, language=None)
     infos = data.get("infos_manquantes") or []
     if infos:
-        st.warning("⚠️ À compléter avant envoi (signalé, non inventé) :")
+        st.warning("À compléter avant envoi (signalé, non inventé) :", icon=None)
         for i in infos:
             st.markdown(f"- {i}")
     if origin:
@@ -113,7 +113,7 @@ def _render_output(data: dict, *, origin: str | None = None, key: str = ""):
 
 def _render_prompt_panel(prompt: dict):
     """Traçabilité du prompt — tout en bas, replié (preuve pour le correcteur)."""
-    with st.expander("🔍 Voir le prompt envoyé (traçabilité)"):
+    with st.expander("Voir le prompt envoyé (traçabilité)"):
         temp = prompt.get("temperature")
         st.caption(f"Modèle : `{prompt.get('model', config.MODEL_ID)}` · "
                    f"Température : {'défaut du modèle' if temp is None else temp}")
@@ -129,7 +129,7 @@ def _render_prompt_panel(prompt: dict):
 # Application
 # ---------------------------------------------------------------------------
 def main():
-    st.set_page_config(page_title="Mon assistant", page_icon="📝")
+    st.set_page_config(page_title="Mon assistant")
     _inject_style()
 
     has_key = bool(config.get_api_key())
@@ -144,15 +144,15 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align:center'>"
-        + ("🟢 En ligne" if not demo_mode else "⚪ Démo")
+        "<div style='text-align:center;color:#888;font-size:0.85rem'>"
+        + ("En ligne" if not demo_mode else "Démo")
         + "</div>",
         unsafe_allow_html=True,
     )
     st.markdown(
         "<div style='text-align:center;color:#888;font-size:0.85rem;margin-top:0.3rem'>"
         "Email · relance · réponse à un avis, pour freelances et TPE. "
-        "⚠️ Contenu IA — à relire et à assumer avant envoi (une réponse à un avis est publique)."
+        "Contenu IA — à relire et à assumer avant envoi (une réponse à un avis est publique)."
         "</div>",
         unsafe_allow_html=True,
     )
@@ -169,7 +169,7 @@ def main():
                              label_visibility="collapsed")
 
     # 3) Options avancées, repliées par défaut (défauts sensés pour 90 % des cas).
-    with st.expander("⚙️ Options"):
+    with st.expander("Options"):
         lang = st.segmented_control("Langue", list(LANG_LABELS),
                                     format_func=lambda v: LANG_LABELS[v],
                                     default="fr", key="lang") or "fr"
@@ -229,7 +229,7 @@ def _render_last_result(mode, lang, opts):
         return
     st.divider()
     if "error" in res:
-        st.error(f"❌ {res['error']}")
+        st.error(res["error"], icon=None)
         if res.get("prompt"):
             _render_prompt_panel(res["prompt"])
         return
@@ -243,7 +243,7 @@ def _render_last_result(mode, lang, opts):
     # 6) La version améliorée devient un bouton secondaire APRÈS la v1 :
     # on décide d'améliorer en voyant le premier jet (seulement en ligne).
     if not (res.get("origin")):  # pas en démo
-        if st.button("✨ Améliorer cette version (auto-critique)"):
+        if st.button("Améliorer cette version (auto-critique)"):
             with st.status("Auto-critique et amélioration…", expanded=False):
                 improved, _ = service.improve_message(mode, lang, res["data"])
             ss["improved"] = {"data": improved.data} if improved.ok else {"error": improved.error}
