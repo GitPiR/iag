@@ -24,3 +24,6 @@ outputs/*.csv
 node_modules/
 package.json
 package-lock.json
+
+# Fichiers patch transitoires
+*.patch
