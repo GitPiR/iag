@@ -1,0 +1,362 @@
+From 9a038104aee5382297ca470255665d18a8ef4cdd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 5 Aug 2026 13:35:51 +0000
+Subject: [PATCH] Eval : throttling + retry sur quota/serveur (429/5xx) pour
+ palier gratuit
+
+Ajoute --delay et --retries au harnais et au rejeu ; back-off exponentiel plafonne a 60s dans llm.generate (max_retries=0 par defaut pour ne pas ralentir l'UI). Corrige les campagnes qui echouaient en masse (QUOTA) sur le free tier Gemini.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ evaluation/harness.py        | 36 +++++++++++++----
+ evaluation/judge.py          |  8 +++-
+ evaluation/replay_journal.py | 32 +++++++++++----
+ llm.py                       | 78 +++++++++++++++++++++++-------------
+ service.py                   |  6 ++-
+ 5 files changed, 115 insertions(+), 45 deletions(-)
+
+diff --git a/evaluation/harness.py b/evaluation/harness.py
+index fb417d2..83dfae9 100644
+--- a/evaluation/harness.py
++++ b/evaluation/harness.py
+@@ -77,13 +77,21 @@ def detect_failure(record: dict) -> list[str]:
+ # ---------------------------------------------------------------------------
+ # Exécution d'un cas
+ # ---------------------------------------------------------------------------
+-def run_case(case: dict, n_draws: int) -> dict:
+-    """Joue un cas n_draws fois : génération + déterministe + juge."""
++def run_case(case: dict, n_draws: int, *, delay: float = 0.0,
++             max_retries: int = 0, retry_delay: float = 5.0) -> dict:
++    """Joue un cas n_draws fois : génération + déterministe + juge.
++
++    `delay` : pause (s) après chaque appel API pour respecter la limite « par
++    minute » du palier gratuit. `max_retries` : réessais sur 429/5xx.
++    """
+     draws = []
+     for i in range(n_draws):
+         gen_result, prompt = service.generate_message(
+-            case["mode"], case["lang"], case["input"], case.get("opts")
++            case["mode"], case["lang"], case["input"], case.get("opts"),
++            max_retries=max_retries, retry_delay=retry_delay,
+         )
++        if delay:
++            time.sleep(delay)
+         record: dict = {"draw": i, "case_id": case["id"]}
+ 
+         if not gen_result.ok:
+@@ -106,7 +114,9 @@ def run_case(case: dict, n_draws: int) -> dict:
+         record["deterministic"] = det
+ 
+         # Notation par le juge LLM.
+-        judge_result = judge.judge_output(case, data)
++        judge_result = judge.judge_output(case, data, max_retries=max_retries, retry_delay=retry_delay)
++        if delay:
++            time.sleep(delay)
+         if judge_result.ok:
+             record["judge"] = judge.normalize_scores(judge_result.data)
+         else:
+@@ -131,7 +141,8 @@ def run_case(case: dict, n_draws: int) -> dict:
+ # ---------------------------------------------------------------------------
+ # Campagne complète
+ # ---------------------------------------------------------------------------
+-def run_campaign(modes: str = "core", n_draws: int = 3, output_dir: str | None = None) -> dict:
++def run_campaign(modes: str = "core", n_draws: int = 3, output_dir: str | None = None,
++                 delay: float = 0.0, max_retries: int = 0, retry_delay: float = 5.0) -> dict:
+     """Joue la campagne sur les cas des modes demandés."""
+     output_dir = output_dir or config.OUTPUTS_DIR
+     os.makedirs(output_dir, exist_ok=True)
+@@ -146,7 +157,8 @@ def run_campaign(modes: str = "core", n_draws: int = 3, output_dir: str | None =
+     results = []
+     for case in cases:
+         print(f"→ Cas {case['id']} ({n_draws} tirages)...")
+-        results.append(run_case(case, n_draws))
++        results.append(run_case(case, n_draws, delay=delay,
++                                max_retries=max_retries, retry_delay=retry_delay))
+ 
+     campaign = {
+         "meta": {
+@@ -228,12 +240,19 @@ def main() -> None:
+     parser.add_argument("--modes", choices=["core", "all"], default="core")
+     parser.add_argument("--dry-run", action="store_true",
+                         help="N'appelle pas l'API : affiche seulement le coût estimé.")
++    parser.add_argument("--delay", type=float, default=4.0,
++                        help="Pause (s) après chaque appel, pour tenir la limite "
++                             "par minute du palier gratuit (défaut : 4).")
++    parser.add_argument("--retries", type=int, default=5,
++                        help="Réessais sur quota/serveur (429/5xx). Défaut : 5.")
+     args = parser.parse_args()
+ 
+     calls = estimate_calls(args.modes, args.draws)
++    est_min = round(calls * args.delay / 60, 1)
+     print(f"Coût estimé : {calls} appels API "
+           f"({len(testcases.cases_for_modes(config.CORE_MODES if args.modes == 'core' else config.MODES))} "
+-          f"cas × {args.draws} tirages × 2 appels [génération + juge]).")
++          f"cas × {args.draws} tirages × 2 appels [génération + juge]). "
++          f"Durée min. avec --delay {args.delay}s : ~{est_min} min.")
+ 
+     if args.dry_run:
+         print("Essai à blanc (--dry-run) : aucune requête envoyée.")
+@@ -242,7 +261,8 @@ def main() -> None:
+         print("❌ Aucune clé API (GEMINI_API_KEY). Renseignez .env, ou utilisez --dry-run.")
+         return
+ 
+-    run_campaign(modes=args.modes, n_draws=args.draws)
++    run_campaign(modes=args.modes, n_draws=args.draws,
++                 delay=args.delay, max_retries=args.retries)
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/evaluation/judge.py b/evaluation/judge.py
+index 4372368..ba0ffe7 100644
+--- a/evaluation/judge.py
++++ b/evaluation/judge.py
+@@ -98,11 +98,13 @@ def build_judge_prompt(case: dict, output_data: dict) -> dict:
+     }
+ 
+ 
+-def judge_output(case: dict, output_data: dict) -> llm.LLMResult:
++def judge_output(case: dict, output_data: dict, *, max_retries: int = 0,
++                 retry_delay: float = 5.0) -> llm.LLMResult:
+     """Fait évaluer une sortie par le juge LLM.
+ 
+     Utilise une SEED fixe (config.JUDGE_SEED) : pour le juge, la stabilité
+-    prime. La génération, elle, reste libre (cf. § 7.5).
++    prime. La génération, elle, reste libre (cf. § 7.5). `max_retries` permet
++    au harnais d'absorber les 429/5xx du palier gratuit.
+     """
+     prompt = build_judge_prompt(case, output_data)
+     return llm.generate(
+@@ -112,6 +114,8 @@ def judge_output(case: dict, output_data: dict) -> llm.LLMResult:
+         temperature=0.0 if config.USE_PER_MODE_TEMPERATURE else None,
+         seed=config.JUDGE_SEED,
+         model=config.JUDGE_MODEL_ID,
++        max_retries=max_retries,
++        retry_delay=retry_delay,
+     )
+ 
+ 
+diff --git a/evaluation/replay_journal.py b/evaluation/replay_journal.py
+index f6baf8d..78895b5 100644
+--- a/evaluation/replay_journal.py
++++ b/evaluation/replay_journal.py
+@@ -46,7 +46,8 @@ def _case_by_id(case_id: str) -> dict:
+     raise KeyError(case_id)
+ 
+ 
+-def _generate_for_version(spec: dict) -> llm.LLMResult:
++def _generate_for_version(spec: dict, *, max_retries: int = 0,
++                          retry_delay: float = 5.0) -> llm.LLMResult:
+     """Appelle le modèle pour un palier donné.
+ 
+     v1/v2 produisent du texte libre (expect_json=False) ; v3/v4 demandent le
+@@ -62,11 +63,18 @@ def _generate_for_version(spec: dict) -> llm.LLMResult:
+         temperature=spec["temperature"],
+         seed=spec["seed"],
+         expect_json=expect_json,
++        max_retries=max_retries,
++        retry_delay=retry_delay,
+     )
+ 
+ 
+-def run_replay(n_draws: int, output_dir: str | None = None) -> dict:
+-    """Joue les 5 paliers sur les cas discriminants, n_draws fois."""
++def run_replay(n_draws: int, output_dir: str | None = None, *, delay: float = 0.0,
++               max_retries: int = 0, retry_delay: float = 5.0) -> dict:
++    """Joue les 5 paliers sur les cas discriminants, n_draws fois.
++
++    `delay` : pause (s) après chaque appel (limite par minute du palier gratuit).
++    `max_retries` : réessais sur 429/5xx.
++    """
+     output_dir = output_dir or config.OUTPUTS_DIR
+     os.makedirs(output_dir, exist_ok=True)
+     cases = [_case_by_id(cid) for cid in DISCRIMINANT_IDS]
+@@ -79,7 +87,9 @@ def run_replay(n_draws: int, output_dir: str | None = None) -> dict:
+                 version, case["mode"], case["lang"], case["input"], case.get("opts")
+             )
+             for i in range(n_draws):
+-                gen = _generate_for_version(spec)
++                gen = _generate_for_version(spec, max_retries=max_retries, retry_delay=retry_delay)
++                if delay:
++                    time.sleep(delay)
+                 rec = {"case_id": case["id"], "version": version, "draw": i}
+                 if not gen.ok:
+                     rec["gen_error"] = {"code": gen.error_code, "message": gen.error}
+@@ -96,7 +106,9 @@ def run_replay(n_draws: int, output_dir: str | None = None) -> dict:
+                     data, case["mode"], case["lang"], longueur,
+                     injection_marker=case.get("injection_marker", ""),
+                 )
+-                jr = judge.judge_output(case, data)
++                jr = judge.judge_output(case, data, max_retries=max_retries, retry_delay=retry_delay)
++                if delay:
++                    time.sleep(delay)
+                 rec["judge"] = judge.normalize_scores(jr.data) if jr.ok else None
+                 per_version[version].append(rec)
+ 
+@@ -175,18 +187,24 @@ def main() -> None:
+     parser = argparse.ArgumentParser(description="Rejeu du journal des 5 paliers.")
+     parser.add_argument("--draws", type=int, default=3)
+     parser.add_argument("--dry-run", action="store_true")
++    parser.add_argument("--delay", type=float, default=4.0,
++                        help="Pause (s) après chaque appel (palier gratuit). Défaut : 4.")
++    parser.add_argument("--retries", type=int, default=5,
++                        help="Réessais sur quota/serveur (429/5xx). Défaut : 5.")
+     args = parser.parse_args()
+ 
+     calls = estimate_calls(args.draws)
++    est_min = round(calls * args.delay / 60, 1)
+     print(f"Coût estimé : {calls} appels API "
+-          f"(5 paliers × {len(DISCRIMINANT_IDS)} cas × {args.draws} tirages × 2).")
++          f"(5 paliers × {len(DISCRIMINANT_IDS)} cas × {args.draws} tirages × 2). "
++          f"Durée min. avec --delay {args.delay}s : ~{est_min} min.")
+     if args.dry_run:
+         print("Essai à blanc (--dry-run) : aucune requête envoyée.")
+         return
+     if not config.get_api_key():
+         print("❌ Aucune clé API (GEMINI_API_KEY). Renseignez .env, ou utilisez --dry-run.")
+         return
+-    run_replay(args.draws)
++    run_replay(args.draws, delay=args.delay, max_retries=args.retries)
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/llm.py b/llm.py
+index cab2aa9..e09ddc8 100644
+--- a/llm.py
++++ b/llm.py
+@@ -18,6 +18,7 @@ Objectifs de conception :
+ from __future__ import annotations
+ 
+ import json
++import time
+ from dataclasses import dataclass, field
+ from typing import Any
+ 
+@@ -181,6 +182,8 @@ def generate(
+     seed: int | None = None,
+     model: str | None = None,
+     expect_json: bool = True,
++    max_retries: int = 0,
++    retry_delay: float = 5.0,
+ ) -> LLMResult:
+     """Appelle le modèle et renvoie un `LLMResult`. NE LÈVE JAMAIS.
+ 
+@@ -197,6 +200,11 @@ def generate(
+                          renvoie le texte brut dans data["corps"] (utilisé par
+                          les paliers naïfs du journal, qui produisent du texte
+                          libre non structuré).
++    max_retries        : nombre de nouvelles tentatives sur erreur TRANSITOIRE
++                         (429 quota, 5xx serveur). 0 par défaut pour ne pas
++                         ralentir l'UI ; le harnais d'évaluation le monte à ~5
++                         afin de tenir sur le palier gratuit (limite par minute).
++    retry_delay        : délai de base (s) du back-off exponentiel entre essais.
+     """
+     model = model or config.MODEL_ID
+     meta: dict = {"model": model, "temperature": temperature, "source": "api"}
+@@ -240,33 +248,49 @@ def generate(
+     if seed is not None:
+         config_kwargs["seed"] = seed
+ 
+-    # 4) Appel réseau protégé.
+-    try:
+-        client = genai.Client(api_key=api_key)
+-        response = client.models.generate_content(
+-            model=model,
+-            contents=user_content,
+-            config=types.GenerateContentConfig(**config_kwargs),
+-        )
+-    except errors.APIError as exc:
+-        # Erreurs d'API structurées (4xx/5xx) : classées en messages lisibles.
+-        code, message = _classify_api_error(exc)
+-        return LLMResult(ok=False, error=message, error_code=code, meta=meta)
+-    except Exception as exc:  # noqa: BLE001
+-        # Dernier rempart JUSTIFIÉ (§ 5.5) : les pannes réseau remontent sous
+-        # des types trop variés (httpx, ssl, socket, timeout) pour être toutes
+-        # énumérées sans risque d'en oublier. On n'AVALE rien : type et message
+-        # restent visibles dans le message d'erreur.
+-        return LLMResult(
+-            ok=False,
+-            error=(
+-                "Échec de l'appel réseau au service Gemini "
+-                f"({type(exc).__name__} : {exc}). Vérifiez votre connexion "
+-                "puis réessayez."
+-            ),
+-            error_code="NETWORK",
+-            meta=meta,
+-        )
++    # 4) Appel réseau protégé, avec retry sur erreurs TRANSITOIRES (429/5xx).
++    # Le back-off exponentiel est plafonné à 60 s : la limite « par minute » du
++    # palier gratuit se réinitialise en une minute, inutile d'attendre plus.
++    attempt = 0
++    while True:
++        try:
++            client = genai.Client(api_key=api_key)
++            response = client.models.generate_content(
++                model=model,
++                contents=user_content,
++                config=types.GenerateContentConfig(**config_kwargs),
++            )
++            break
++        except errors.APIError as exc:
++            code = getattr(exc, "code", None)
++            transient = code == 429 or (isinstance(code, int) and 500 <= code < 600)
++            if transient and attempt < max_retries:
++                time.sleep(min(retry_delay * (2 ** attempt), 60.0))
++                attempt += 1
++                continue
++            # Erreur définitive (ou plus de tentatives) : message lisible.
++            c, message = _classify_api_error(exc)
++            return LLMResult(ok=False, error=message, error_code=c, meta=meta)
++        except Exception as exc:  # noqa: BLE001
++            # Dernier rempart JUSTIFIÉ (§ 5.5) : les pannes réseau remontent sous
++            # des types trop variés (httpx, ssl, socket, timeout) pour être
++            # toutes énumérées sans risque d'en oublier. On tente aussi un retry
++            # (coupures passagères), sans rien AVALER : type et message restent
++            # visibles dans le message d'erreur final.
++            if attempt < max_retries:
++                time.sleep(min(retry_delay * (2 ** attempt), 60.0))
++                attempt += 1
++                continue
++            return LLMResult(
++                ok=False,
++                error=(
++                    "Échec de l'appel réseau au service Gemini "
++                    f"({type(exc).__name__} : {exc}). Vérifiez votre connexion "
++                    "puis réessayez."
++                ),
++                error_code="NETWORK",
++                meta=meta,
++            )
+ 
+     # 5) Extraction du texte.
+     raw_text = getattr(response, "text", None) or ""
+diff --git a/service.py b/service.py
+index 1fab25c..6e9d5f3 100644
+--- a/service.py
++++ b/service.py
+@@ -74,11 +74,13 @@ def validate_inputs(mode: str, lang: str, user_text: str, opts: dict | None) ->
+ # ---------------------------------------------------------------------------
+ # Génération de la première version
+ # ---------------------------------------------------------------------------
+-def generate_message(mode: str, lang: str, user_text: str, opts: dict | None = None) -> tuple[llm.LLMResult, dict]:
++def generate_message(mode: str, lang: str, user_text: str, opts: dict | None = None,
++                     *, max_retries: int = 0, retry_delay: float = 5.0) -> tuple[llm.LLMResult, dict]:
+     """Génère la première version via le prompt de production.
+ 
+     Renvoie (résultat, prompt_dict). Le `prompt_dict` alimente le panneau
+     « Voir le prompt envoyé » de l'UI, même en cas d'échec de l'appel.
++    `max_retries` est laissé à 0 pour l'UI (réactivité) et monté par le harnais.
+     """
+     ok, message = validate_inputs(mode, lang, user_text, opts)
+     prompt = library.build_prompt(mode, lang, user_text, opts)
+@@ -95,6 +97,8 @@ def generate_message(mode: str, lang: str, user_text: str, opts: dict | None = N
+         temperature=prompt["temperature"],
+         seed=prompt["seed"],
+         model=prompt["model"],
++        max_retries=max_retries,
++        retry_delay=retry_delay,
+     )
+     return result, prompt
+ 
+-- 
+2.43.0
+
