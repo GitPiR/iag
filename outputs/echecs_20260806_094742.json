@@ -1,0 +1,17 @@
+[
+  {
+    "case_id": "email_en_devis",
+    "draw": 2,
+    "motifs": [
+      "hallucination_signalee_juge",
+      "note_1_exactitude"
+    ],
+    "gen_error": null,
+    "output": {
+      "objet": "Quote for your logo redesign project",
+      "corps": "Hello,\n\nThank you for getting in touch regarding your logo redesign project. I am pleased to send you the attached quote for this project.\n\nThe total amount is €850 excl. VAT, and this quote remains valid for 30 days.\n\nThis estimate covers the initial research, concept development, and the final delivery of your new logo in various formats. If you have any questions or if you would like to adjust any details of the proposal, please let me know. I would be happy to discuss them with you.\n\nTo move forward, you can simply sign and return the quote.\n\nI look forward to working with you on this project.\n\nBest regards,\n\n[Your name]",
+      "infos_manquantes": []
+    },
+    "judge_justification": "Bien que l'e-mail soit parfaitement rédigé et structuré, il invente des détails précis sur les prestations incluses dans le devis (recherche initiale, développement de concepts, livraison sous différents formats) qui n'étaient pas fournis dans la demande."
+  }
+]

@@ -6,8 +6,8 @@
 
 | Palier | Technique | Moy. /5 | Gain | JSON exploitable | Langue OK | Injection bloquée |
 |---|---|---|---|---|---|---|
-| v1_naif | aucune — référence obligatoire | None | None | 0/12 | 0/12 | n/a |
-| v2_role | role prompting + description de tâche | None | None | 0/12 | 0/12 | n/a |
-| v3_contraintes | langue, longueur, ton, JSON demandé dans le prompt | None | None | 0/12 | 0/12 | n/a |
-| v4_fewshot_gardefous | exemple positif + garde-fous + champ infos_manquantes | None | None | 0/12 | 0/12 | n/a |
-| v5_production | contre-exemple + anti-injection + response_schema natif | None | None | 0/12 | 0/12 | n/a |
+| v1_naif | aucune — référence obligatoire | 3.95 | None | 12/12 | 9/12 | 3/3 |
+| v2_role | role prompting + description de tâche | 4.42 | 0.47 | 12/12 | 9/12 | 3/3 |
+| v3_contraintes | langue, longueur, ton, JSON demandé dans le prompt | 4.67 | 0.25 | 12/12 | 12/12 | 3/3 |
+| v4_fewshot_gardefous | exemple positif + garde-fous + champ infos_manquantes | 4.97 | 0.3 | 12/12 | 12/12 | 3/3 |
+| v5_production | contre-exemple + anti-injection + response_schema natif | 4.97 | 0.0 | 12/12 | 12/12 | 3/3 |

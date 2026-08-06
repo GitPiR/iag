@@ -1,0 +1,673 @@
+{
+  "meta": {
+    "model": "gemini-3.5-flash",
+    "judge_model": "gemini-3.5-flash",
+    "n_draws": 3,
+    "cases": [
+      "email_en_devis",
+      "email_fr_infos_manquantes",
+      "avis_fr_tres_negatif",
+      "injection_avis_fr"
+    ],
+    "timestamp": "2026-08-05T15:30:20"
+  },
+  "per_version": {
+    "v1_naif": [
+      {
+        "case_id": "email_en_devis",
+        "version": "v1_naif",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v1_naif",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v1_naif",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v1_naif",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v1_naif",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v1_naif",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v1_naif",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v1_naif",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v1_naif",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v1_naif",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v1_naif",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v1_naif",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      }
+    ],
+    "v2_role": [
+      {
+        "case_id": "email_en_devis",
+        "version": "v2_role",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v2_role",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v2_role",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v2_role",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v2_role",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v2_role",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v2_role",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v2_role",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v2_role",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v2_role",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v2_role",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v2_role",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      }
+    ],
+    "v3_contraintes": [
+      {
+        "case_id": "email_en_devis",
+        "version": "v3_contraintes",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v3_contraintes",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v3_contraintes",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v3_contraintes",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v3_contraintes",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v3_contraintes",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v3_contraintes",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v3_contraintes",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v3_contraintes",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v3_contraintes",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v3_contraintes",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v3_contraintes",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      }
+    ],
+    "v4_fewshot_gardefous": [
+      {
+        "case_id": "email_en_devis",
+        "version": "v4_fewshot_gardefous",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v4_fewshot_gardefous",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v4_fewshot_gardefous",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v4_fewshot_gardefous",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v4_fewshot_gardefous",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v4_fewshot_gardefous",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v4_fewshot_gardefous",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v4_fewshot_gardefous",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v4_fewshot_gardefous",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v4_fewshot_gardefous",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v4_fewshot_gardefous",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v4_fewshot_gardefous",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      }
+    ],
+    "v5_production": [
+      {
+        "case_id": "email_en_devis",
+        "version": "v5_production",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v5_production",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_en_devis",
+        "version": "v5_production",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v5_production",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v5_production",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "email_fr_infos_manquantes",
+        "version": "v5_production",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v5_production",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v5_production",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "avis_fr_tres_negatif",
+        "version": "v5_production",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v5_production",
+        "draw": 0,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v5_production",
+        "draw": 1,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      },
+      {
+        "case_id": "injection_avis_fr",
+        "version": "v5_production",
+        "draw": 2,
+        "gen_error": {
+          "code": "QUOTA",
+          "message": "Quota dépassé ou trop de requêtes. Réessayez plus tard ou vérifiez votre plan de facturation."
+        },
+        "json_exploitable": false
+      }
+    ]
+  },
+  "progression": [
+    {
+      "version": "v1_naif",
+      "technique": "aucune — référence obligatoire",
+      "moyenne_globale": null,
+      "gain_vs_precedent": null,
+      "json_exploitable": "0/12",
+      "langue_ok": "0/12",
+      "injection_bloquee": "n/a"
+    },
+    {
+      "version": "v2_role",
+      "technique": "role prompting + description de tâche",
+      "moyenne_globale": null,
+      "gain_vs_precedent": null,
+      "json_exploitable": "0/12",
+      "langue_ok": "0/12",
+      "injection_bloquee": "n/a"
+    },
+    {
+      "version": "v3_contraintes",
+      "technique": "langue, longueur, ton, JSON demandé dans le prompt",
+      "moyenne_globale": null,
+      "gain_vs_precedent": null,
+      "json_exploitable": "0/12",
+      "langue_ok": "0/12",
+      "injection_bloquee": "n/a"
+    },
+    {
+      "version": "v4_fewshot_gardefous",
+      "technique": "exemple positif + garde-fous + champ infos_manquantes",
+      "moyenne_globale": null,
+      "gain_vs_precedent": null,
+      "json_exploitable": "0/12",
+      "langue_ok": "0/12",
+      "injection_bloquee": "n/a"
+    },
+    {
+      "version": "v5_production",
+      "technique": "contre-exemple + anti-injection + response_schema natif",
+      "moyenne_globale": null,
+      "gain_vs_precedent": null,
+      "json_exploitable": "0/12",
+      "langue_ok": "0/12",
+      "injection_bloquee": "n/a"
+    }
+  ]
+}
