@@ -72,6 +72,12 @@ ce changement peu coûteux : c'était un **objectif d'architecture**, pas un has
 
 - Coût d'une campagne cœur (3 tirages) : **72 appels API** ; rejeu du journal :
   **120 appels**. Ordres de grandeur faibles, mais non nuls.
+- **Quota gratuit rédhibitoire, constaté en pratique** : sur le palier gratuit,
+  `gemini-3.5-flash` est plafonné à **5 requêtes/min et 20 requêtes/JOUR** (RPD).
+  Une seule campagne (192 appels) est donc **impossible gratuitement** — nous
+  avons dû ajouter throttling + retry (429/5xx) puis activer la **facturation**
+  (coût réel < 0,10 € pour toute la campagne). C'est une illustration directe de
+  la **dépendance fournisseur** : sans budget, le protocole n'est pas exécutable.
 - **Dépendance forte** : les modèles **Gemini 1.5 et 2.0 ont été réellement
   coupés** (404). Un identifiant codé en dur **cesse de fonctionner sans
   prévenir** → d'où la **constante unique** commentée et le message d'erreur

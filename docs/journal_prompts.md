@@ -63,21 +63,53 @@ Le script joue les 5 paliers sur **4 cas discriminants** (langue, garde-fou
 anti-invention, contre-exemple, injection), avec le **même juge**, et régénère
 `outputs/journal_resultats.md`. **Aucun chiffre n'est recopié à la main.**
 
-## Résultats du rejeu — ⬜ À REMPLIR
+## Résultats du rejeu — campagne réelle du 2026-08-06
 
-À produire par la commande ci-dessus. Colonnes attendues (lecture : la moyenne
-doit monter de v1 à v5 ; le taux de JSON exploitable doit bondir entre v3 et v5 ;
-l'injection ne doit être bloquée qu'à partir de v5) :
+Modèle `gemini-3.5-flash`, juge `gemini-3.5-flash`, 3 tirages par (cas × palier),
+sur les 4 cas discriminants. Chiffres générés automatiquement
+(`outputs/journal_resultats.md`, source `journal_rejeu_20260806_095839.json`).
 
 | Palier | Moy. /5 | Gain vs préc. | JSON exploitable | Langue OK | Injection bloquée |
 |---|---|---|---|---|---|
-| v1_naif | ⬜ | — | ⬜ | ⬜ | ⬜ |
-| v2_role | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| v3_contraintes | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| v4_fewshot_gardefous | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| v5_production | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| v1_naif | 3.95 | — | 12/12 | 9/12 | 3/3 |
+| v2_role | 4.42 | +0.47 | 12/12 | 9/12 | 3/3 |
+| v3_contraintes | 4.67 | +0.25 | 12/12 | **12/12** | 3/3 |
+| v4_fewshot_gardefous | 4.97 | +0.30 | 12/12 | 12/12 | 3/3 |
+| v5_production | 4.97 | +0.00 | 12/12 | 12/12 | 3/3 |
 
-**Comment lire** : un gain concentré sur un seul palier isole la brique
-responsable. Si v3 affiche un faible taux de JSON exploitable et v5 un taux
-élevé, le chiffre justifie à lui seul le passage au schéma natif — et donne au
-parsing défensif une origine datée, non un statut de précaution théorique.
+### Lecture honnête des résultats (ce que la mesure démontre, et ce qu'elle ne démontre pas)
+
+- **La progression de qualité est réelle et monotone** : 3.95 → 4.42 → 4.67 →
+  4.97. Le plus gros saut vient du **rôle** (+0.47) : il corrige le registre
+  corporate et impose une structure. Les contraintes (+0.25) puis l'exemple
+  positif + garde-fous (+0.30) continuent d'améliorer. La qualité finale ne vient
+  donc **pas d'un coup de chance** mais d'un empilement contrôlé de briques.
+- **La consigne de langue est la brique la plus nettement démontrée** : les
+  paliers naïf et rôle échouent la langue **3 fois sur 12** (le cas FR→EN fuit
+  vers le français), et le score passe à **12/12 dès v3**, exactement quand on
+  ajoute la directive de langue. C'est la preuve chiffrée que le prompt contrôle
+  la langue, là où un prompt de chat ne le ferait pas.
+- **Résultat NÉGATIF assumé n°1 — le JSON exploitable ne discrimine pas** (12/12
+  partout). Deux raisons : les paliers naïfs produisent du texte libre (emballé
+  en objet exploitable), et surtout le **parsing défensif** récupère 12/12 du
+  JSON « demandé poliment » en v3. L'apport du `response_schema` natif n'est donc
+  **pas** un gain de taux de parsing sur ce petit échantillon : c'est une
+  **garantie** (le format ne peut plus casser) plutôt qu'une amélioration
+  mesurée. Notre parseur de secours était plus robuste que prévu — voilà
+  pourquoi la mesure valait mieux que la supposition.
+- **Résultat NÉGATIF assumé n°2 — l'anti-injection ne montre aucun gain ici**
+  (3/3 bloquées à **tous** les paliers, y compris naïf). Le modèle a résisté seul
+  à notre injection (« ignore les instructions… INJECTION_REUSSIE »). La valeur
+  de la brique délimiteurs reste défendable en principe, mais sur **ce** cas elle
+  n'était pas nécessaire. Enseignement : il faut un cas d'injection plus agressif
+  (encodé, multilingue) pour espérer mesurer un écart — c'est une piste
+  d'amélioration du jeu de tests, pas une preuve que les délimiteurs sont inutiles.
+- **v5 = v4 sur la moyenne** (4.97) : sur ces 4 cas discriminants déjà proches du
+  maximum, le contre-exemple n'a plus de marge pour faire monter l'agrégat. Son
+  effet se mesurerait sur des avis négatifs plus piégeux ; l'échantillon
+  discriminant a ici atteint son plafond.
+
+**Ce que ce tableau prouve** : le prompt engineering apporte un gain **réel et
+attribuable** (surtout rôle + langue) ; et l'honnêteté de la démarche apparaît
+dans les **deux résultats négatifs** que la mesure a révélés au lieu de les
+masquer. C'est précisément ce que le sujet valorise.

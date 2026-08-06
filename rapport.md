@@ -8,19 +8,34 @@ professionnelles (email, relance, réponse à un avis) pour freelances et TPE/PM
 > envoi/publication (une réponse à un avis est **publique**). Ne pas saisir de
 > données personnelles sensibles.
 
-## 0. État d'avancement — ce qui est vérifié vs ce qui ne l'est pas
+## Résumé (≤ 10 lignes)
+
+Nous avons conçu un assistant de rédaction de communications professionnelles
+(email, relance, réponse à un avis) pour freelances et TPE, sous forme d'une
+**application** — et non d'un chat — afin d'encapsuler le prompt engineering :
+prompts pré-engineerés, garde-fous imposés, format garanti, résistance à
+l'injection. Le cœur (bilingue FR/EN) repose sur cinq versions de prompt figées
+(`v1_naif` → `v5_production`, où **v5 est littéralement le prompt de l'app**,
+vérifié par test). Une campagne d'évaluation réelle (juge LLM séparé + contrôles
+déterministes, 3 tirages/cas) **mesure** l'apport du prompt engineering :
+qualité **3.95 → 4.97/5** du naïf à la production, respect de la langue **9/12 →
+12/12**. Deux résultats négatifs sont assumés (anti-injection et schéma sans gain
+mesuré sur cet échantillon) et deux hallucinations analysées. Limites, RGPD et
+alternative Mistral sont documentés.
+
+## 0. État d'avancement — ce qui est vérifié
 
 | Élément | État | Vérification |
 |---|---|---|
-| Prototype Streamlit (3 modes cœur, bilingue, démo, auto-critique) | **Exécuté** | `assets/screenshot_demo.png`, `screenshot_prompt.png` (captures réelles) |
+| Prototype Streamlit (3 modes cœur, bilingue, démo, auto-critique) | **Exécuté** | captures réelles + app lancée |
 | Couche LLM isolée, gestion d'erreurs, parsing défensif | **Codé + testé** | `tests/` (47 tests OK) |
 | 5 paliers de prompt, v5 == production | **Codé + testé** | `tests/test_journal.py` |
 | Vérification hors-ligne | **Exécuté** | `python verifier.py` → « TOUT EST COHÉRENT » |
-| Campagne d'évaluation chiffrée | **Non exécutée** (pas de clé) | Tableaux `⬜ À REMPLIR` + commande exacte ; **aucun chiffre inventé** |
+| Campagne d'évaluation chiffrée | **Exécutée (2026-08-06)** | `outputs/campagne_20260806_094742.csv`, `journal_resultats.md` — chiffres réels, non inventés |
 
-**Hypothèses** : (1) faits techniques du § 5 du cahier des charges tenus pour à
-jour (SDK `google-genai`, modèle `gemini-3.5-flash`, familles 1.5/2.0 coupées) ;
-(2) corpus fictif ; (3) évaluation par juge LLM, avec son biais assumé.
+**Hypothèses** : (1) modèle `gemini-3.5-flash` (constante unique, à reconfirmer
+au catalogue) ; (2) corpus fictif ; (3) évaluation par juge LLM, avec son biais
+de complaisance assumé (même famille de modèle).
 
 ## 1. Cahier des charges (6 points)
 
@@ -103,11 +118,24 @@ qui **priment** sur le juge en cas de désaccord ; **≥ 3 tirages**, min/max/mo
 écart-type ; **artefacts JSON/CSV** rejouables ; **détection automatique des
 échecs**. Protocole complet : `docs/protocole_evaluation.md`.
 
-**Résultats** : ⬜ **À REMPLIR** — la campagne (72 appels, cœur, 3 tirages) n'a
-pas été exécutée faute de clé. Commande : `python -m evaluation.harness --draws 3
---modes core`. **Aucun chiffre n'est inventé** (fraude que ce projet enseigne à
-éviter). Deux fiches d'échec sont réservées et seront remplies depuis
-`outputs/echecs_*.json`.
+**Résultats (campagne réelle du 2026-08-06, `gemini-3.5-flash`)** :
+- **Progression du prompt** (rejeu des 5 paliers, même juge) : moyenne
+  **3.95 → 4.42 → 4.67 → 4.97 → 4.97/5**. Gain le plus fort : le **rôle** (+0.47).
+- **Respect de la langue** : **9/12** au naïf → **12/12** dès l'ajout de la
+  consigne de langue (v3). C'est la brique la plus nettement démontrée.
+- **Comparaison naïf/engineeré** : +1.02 point (3.95 → 4.97), langue 9/12 → 12/12,
+  format garanti seulement en engineeré.
+- **Deux résultats négatifs assumés** : anti-injection (6/6 bloquées **mais** le
+  naïf bloquait déjà — pas de gain mesuré) et JSON exploitable (12/12 partout, le
+  parseur défensif suffit) ; le schéma natif apporte une **garantie**, pas un gain
+  chiffré ici.
+- **Honnêteté** : 35/36 tirages réussis, **2 hallucinations analysées** (une
+  franche notée 1/5 sur `email_en_devis`, une implicature « comme convenu » notée
+  3/5), variance forte sur ce cas (σ=1.81) illustrant l'utilité des ≥3 tirages.
+
+Détail chiffré et fiches d'échec : `docs/protocole_evaluation.md` §8-10.
+Rejouable : `python -m evaluation.harness --draws 3 --modes core`. **Aucun chiffre
+n'est inventé** ; tous proviennent de `outputs/`.
 
 ## 6. Limites, risques, responsabilité (résumé — détail `docs/analyse_critique.md`)
 
@@ -115,7 +143,9 @@ pas été exécutée faute de clé. Commande : `python -m evaluation.harness --d
   (implicatures « comme convenu ») non éliminées → relecture humaine.
 - **Biais** : corporate, culturel anglophone, apaisement (remises spontanées) —
   **contraints, non corrigés**.
-- **Sécurité** : anti-injection implémentée, efficacité **mesurée** (⬜).
+- **Sécurité** : anti-injection implémentée ; efficacité **mesurée** = 6/6
+  injections bloquées, mais gain non prouvé (le naïf bloquait déjà) → cas
+  d'injection plus agressif à ajouter.
 - **RGPD** : données personnelles transmises hors UE ; offre gratuite = données
   possiblement réutilisées ; mitigations (aucun stockage, corpus fictif,
   avertissements) + anonymisation recommandée. **Mistral** = meilleure option UE.

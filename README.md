@@ -112,9 +112,12 @@ python -m evaluation.replay_journal --draws 3
 Les artefacts (JSON + CSV + fichier d'échecs) sont écrits dans `outputs/`. Le
 journal de résultats Markdown est régénéré automatiquement.
 
-> **État des mesures** : aucune campagne n'a été exécutée dans ce dépôt (pas de
-> clé). Les tableaux de résultats portent le marqueur `⬜ À REMPLIR` et la
-> commande exacte qui les produit. **Aucun chiffre n'est inventé.**
+> **État des mesures** : une campagne réelle a été exécutée le **2026-08-06**
+> (`gemini-3.5-flash`, 3 tirages/cas). Résultats chiffrés dans
+> `outputs/journal_resultats.md` et `docs/protocole_evaluation.md` §8-10 —
+> progression **3.95 → 4.97/5**, langue **9/12 → 12/12**, 2 hallucinations
+> analysées. **Aucun chiffre n'est inventé** ; tout provient de `outputs/`.
+> Ajoutez `--delay 5` (et `--retries` par défaut) pour tenir un palier gratuit.
 
 ---
 
