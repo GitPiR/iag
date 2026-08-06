@@ -17,10 +17,10 @@ risque de quota ou de modèle retiré pendant la soutenance).
 - **« Pourquoi Gemini et pas Mistral ? »** — Choix pédagogique (sortie structurée
   native, doc claire). Pour un déploiement réel UE, Mistral serait probablement le
   bon choix ; l'architecture (couche LLM isolée) rend la bascule peu coûteuse.
-- **« Vos chiffres d'évaluation ? »** — Le harnais est prêt et les tableaux
-  décrits ; nous n'avons pas exécuté la campagne payante dans le dépôt rendu et
-  **n'inventons aucun chiffre** (`⬜ À REMPLIR` + commande exacte). Honnêteté
-  attendue par le sujet lui-même.
+- **« Vos chiffres d'évaluation ? »** — Campagne réelle du 2026-08-06
+  (`gemini-3.5-flash`, 3 tirages/cas) : progression **3.95 → 4.97/5** du naïf à la
+  production, langue **9/12 → 12/12**, 35/36 tirages réussis, 2 hallucinations
+  analysées. Tout provient de `outputs/` — **aucun chiffre inventé**.
 - **« La moyenne 4,5/5 du juge prouve-t-elle la qualité ? »** — Non : le juge est
   de la même famille, donc complaisant ; 4,5 signifie « le modèle se juge 4,5 ».
   D'où les contrôles déterministes qui priment.

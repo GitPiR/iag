@@ -38,9 +38,11 @@ Mesures **implémentées** : séparation `system_instruction` / contenu (seule
 séparation structurelle offerte par l'API), délimiteurs XML, consigne explicite
 d'ignorer les instructions du texte fourni, règle homologue côté juge. Efficacité
 **mesurée**, pas postulée : cas d'injection dédiés + détection déterministe du
-marqueur (`deterministic.check_injection`), résultats en
-`docs/protocole_evaluation.md` §8.2 (⬜ à remplir). Limite : une injection plus
-sophistiquée (multilingue, encodée) n'est pas couverte par ces deux cas.
+marqueur (`deterministic.check_injection`). Résultat réel (§8.2) : **6/6
+injections bloquées** — mais le rejeu montre que le **palier naïf bloquait déjà**
+(le modèle résiste seul), donc le gain des délimiteurs n'est **pas prouvé** sur
+ce cas. Limite assumée : une injection plus sophistiquée (multilingue, encodée)
+n'est pas couverte ; c'est la première piste d'enrichissement du jeu de tests.
 
 ## 5. Confidentialité et RGPD
 
