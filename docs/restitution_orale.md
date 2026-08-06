@@ -30,10 +30,10 @@ risque de quota ou de modèle retiré pendant la soutenance).
 - **« Que se passe-t-il sans clé / si le modèle est retiré ? »** — Mode démo
   hors-ligne ; message d'erreur explicite `MODEL_GONE` ; jamais de trace Python.
 
-## Contributions par membre — ⬜ À COMPLÉTER par le groupe
+## Contributions par membre
 
 | Membre | Contributions |
 |---|---|
-| Membre 1 | ⬜ (ex. couche LLM + prompts + journal) |
-| Membre 2 | ⬜ (ex. harnais d'évaluation + juge + tests) |
-| Membre 3 | ⬜ (ex. UI Streamlit + mode démo + rapport) |
+| Pierre Postal | Couche LLM (`llm.py`, isolation fournisseur, gestion d'erreurs) + bibliothèque de prompts (`prompts/`) + journal des 5 itérations |
+| Fabien Tavernier | Harnais d'évaluation (`evaluation/`, rubrique, campagne, variance, artefacts) + juge LLM séparé + tests unitaires |
+| Fabien Lubin | Interface Streamlit (`app.py`) + mode démo hors-ligne + rédaction du rapport et des documents (`docs/`) |

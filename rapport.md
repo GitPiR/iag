@@ -159,5 +159,12 @@ n'est inventé** ; tous proviennent de `outputs/`.
 
 Modes **cœur évalués** : email, relance, réponse à un avis. Modes **bonus
 explicitement exclus** de l'évaluation : post, reformuler (ne dégradent pas le
-cœur). **Contributions par membre** : ⬜ à compléter (voir
-`docs/restitution_orale.md`).
+cœur).
+
+**Contributions par membre** :
+- **Pierre Postal** : couche LLM (`llm.py`, isolation fournisseur, gestion
+  d'erreurs) + bibliothèque de prompts (`prompts/`) + journal des 5 itérations.
+- **Fabien Tavernier** : harnais d'évaluation (`evaluation/`, rubrique, campagne,
+  variance, artefacts) + juge LLM séparé + tests unitaires.
+- **Fabien Lubin** : interface Streamlit (`app.py`) + mode démo hors-ligne +
+  rédaction du rapport et des documents (`docs/`).
